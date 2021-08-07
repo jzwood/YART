@@ -1,13 +1,8 @@
 module RayTracer where
 
 import Codec.Picture
+import Geometry
 
-
-newtype Point = Point (Integer, Integer, Integer)
-newtype Vector = Vector (Double, Double, Double)
-newtype Plane = Plane (Point, Point, Point)
-
-data Sphere = Circle { sCenter :: Point, radius :: Double  }
  -- Window: pixel screen through which rays are cast through from Eye
 data Window = Window { wCenter :: Point, up :: Vector, width :: Double, height :: Double, pxWidth :: Integer, pxHeight :: Integer }
 data RGB = RGB { red :: Int, green :: Int, blue :: Int }
