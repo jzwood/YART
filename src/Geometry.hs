@@ -14,7 +14,7 @@ data Sphere = Sphere { sCenter :: Point, radius :: Double  }
   deriving (Show, Eq)
 
 minus :: Point -> Point -> Vector
-minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px2 - px1, py2 - py1, pz2 - pz1)
+minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 - py2, pz1 - pz2)
 
 dot :: Vector -> Vector -> Double
 dot (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = (vx1 * vx2) + (vy1 * vy2) + (vz1 * vz2)
