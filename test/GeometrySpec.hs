@@ -27,9 +27,23 @@ spec = do
       mag (normalize (Vector (5, 5, 5))) `shouldBe` 1
 
   describe "ray sphere intersection" $ do
-    it "works 1" $
+    it "intersection 1" $
       let
         camera = Ray (Point (0,0,0)) (Vector (1,0,0))
         sphere = Sphere { sCenter = Point (4,0,0), radius = 1 }
       in
         findClosestIntersection camera sphere `shouldBe` (Just $ Point (3, 0, 0))
+
+    it "intersection 2" $
+      let
+        camera = Ray (Point (0,0,1)) (Vector (0,0,1))
+        sphere = Sphere { sCenter = Point (0,0,10), radius = 2.5 }
+      in
+        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 7.5))
+
+    it "intersection 2b" $
+      let
+        camera = Ray (Point (0,0,1)) (Vector (0,0,8))
+        sphere = Sphere { sCenter = Point (0,0,10), radius = 1 }
+      in
+        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 9))

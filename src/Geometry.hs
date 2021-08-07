@@ -39,6 +39,6 @@ findClosestIntersection (Ray o d) (Sphere c r)
   where
     nd = normalize d
     l = c `minus` o
-    tb = d `dot` l
+    tb = nd `dot` l
     b = o `plus` (scale tb nd)
     delta'2 = r^2 - (mag l)^2 + tb^2
