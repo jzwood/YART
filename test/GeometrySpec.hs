@@ -41,9 +41,30 @@ spec = do
       in
         findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 7.5))
 
-    it "intersection 2b" $
+    it "intersection unnormalized ray" $
       let
         camera = Ray (Point (0,0,1)) (Vector (0,0,8))
         sphere = Sphere { sCenter = Point (0,0,10), radius = 1 }
       in
         findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 9))
+
+    it "intersection ray from surface" $
+      let
+        camera = Ray (Point (0,0,0)) (Vector (0,1,0))
+        sphere = Sphere { sCenter = Point (0,1,0), radius = 1 }
+      in
+        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 0))
+
+    it "intersection ray inside surface" $
+      let
+        camera = Ray (Point (0,0,0)) (Vector (0,1,0))
+        sphere = Sphere { sCenter = Point (0,0,0), radius = 2 }
+      in
+        findClosestIntersection camera sphere `shouldBe` Nothing
+
+    it "no intersection" $
+      let
+        camera = Ray (Point (0,0,0)) (Vector (0,1,0))
+        sphere = Sphere { sCenter = Point (0,0,8), radius = 2 }
+      in
+        findClosestIntersection camera sphere `shouldBe` Nothing

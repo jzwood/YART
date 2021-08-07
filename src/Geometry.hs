@@ -33,12 +33,14 @@ normalize v = scale (1 / (mag v)) v
 
 findClosestIntersection :: Ray -> Sphere -> Maybe Point
 findClosestIntersection (Ray o d) (Sphere c r)
-   | delta'2 < 0 = Nothing
-   | delta'2 == 0 = Just b
-   | otherwise = Just $ o `plus` (scale (tb - (sqrt delta'2))  nd)
+   | delta'2 < 0 = Nothing  -- no intersection
+   | delta'2 == 0 = Just b -- 1 intersection
+   | ml < r = Nothing  -- ray is inside sphere
+   | otherwise = Just $ o `plus` (scale (tb - (sqrt delta'2))  nd) -- 2 intersections
   where
     nd = normalize d
     l = c `minus` o
+    ml = mag l
     tb = nd `dot` l
     b = o `plus` (scale tb nd)
-    delta'2 = r^2 - (mag l)^2 + tb^2
+    delta'2 = r^2 - (ml)^2 + tb^2
