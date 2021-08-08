@@ -32,39 +32,76 @@ spec = do
         camera = Ray (Point (0,0,0)) (Vector (1,0,0))
         sphere = Sphere { sCenter = Point (4,0,0), radius = 1 }
       in
-        findClosestIntersection camera sphere `shouldBe` (Just $ Point (3, 0, 0))
+        raySphereIntersection camera sphere `shouldBe` (Just $ Point (3, 0, 0))
 
     it "intersection 2" $
       let
         camera = Ray (Point (0,0,1)) (Vector (0,0,1))
         sphere = Sphere { sCenter = Point (0,0,10), radius = 2.5 }
       in
-        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 7.5))
+        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 7.5))
 
     it "intersection unnormalized ray" $
       let
         camera = Ray (Point (0,0,1)) (Vector (0,0,8))
         sphere = Sphere { sCenter = Point (0,0,10), radius = 1 }
       in
-        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 9))
+        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 9))
 
     it "intersection ray from surface" $
       let
         camera = Ray (Point (0,0,0)) (Vector (0,1,0))
         sphere = Sphere { sCenter = Point (0,1,0), radius = 1 }
       in
-        findClosestIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 0))
+        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 0))
 
     it "intersection ray inside surface" $
       let
         camera = Ray (Point (0,0,0)) (Vector (0,1,0))
         sphere = Sphere { sCenter = Point (0,0,0), radius = 2 }
       in
-        findClosestIntersection camera sphere `shouldBe` Nothing
+        raySphereIntersection camera sphere `shouldBe` Nothing
 
     it "no intersection" $
       let
         camera = Ray (Point (0,0,0)) (Vector (0,1,0))
         sphere = Sphere { sCenter = Point (0,0,8), radius = 2 }
       in
-        findClosestIntersection camera sphere `shouldBe` Nothing
+        raySphereIntersection camera sphere `shouldBe` Nothing
+
+  describe "ray plane intersection" $ do
+    it "intersection 1" $
+      let
+        camera = Ray (Point (0,4,0)) (Vector (0,-4,0))
+        plane = Plane { pCenter = Point (0,0,0), pPoint = Point (0, 0, 1), pNormal = Vector (0, 1, 0) }
+      in
+        rayPlaneIntersection camera plane `shouldBe` (Just $ Point (0, 0, 0))
+
+    it "intersection 2" $
+      let
+        camera = Ray (Point (1,1,1)) (Vector (-1,-1,-1))
+        plane = Plane { pCenter = Point (0,0,0), pPoint = Point (0, 1, 1), pNormal = Vector (1, 1, 1) }
+      in
+        rayPlaneIntersection camera plane `shouldBe` (Just $ Point (0, 0, 0))
+
+    it "no intersection 1" $
+      let
+        camera = Ray (Point (0,3,0)) (Vector (0,1,0))
+        plane = Plane { pCenter = Point (0,0,0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
+      in
+        rayPlaneIntersection camera plane `shouldBe` Nothing
+
+    it "no intersection (parellel)" $
+      let
+        camera = Ray (Point (2,3,0)) (Vector (2,0,0))
+        plane = Plane { pCenter = Point (0,0,0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
+      in
+        rayPlaneIntersection camera plane `shouldBe` Nothing
+
+    it "infinite intersections" $
+      let
+        camera = Ray (Point (0,0,0)) (Vector (7,0,0))
+        plane = Plane { pCenter = Point (0,0,0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
+      in
+        rayPlaneIntersection camera plane `shouldBe` Nothing
+

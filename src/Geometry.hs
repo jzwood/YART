@@ -1,16 +1,18 @@
 module Geometry where
 
+-- Math from:
+-- https://slides.com/sergejkosov/ray-geometry-intersection-algorithms/fullscreen
 
 newtype Point = Point (Double, Double, Double)
   deriving (Show, Eq)
 newtype Vector = Vector (Double, Double, Double)
   deriving (Show, Eq)
-newtype Plane = Plane (Point, Point, Point)
-  deriving (Show, Eq)
 
 data Ray = Ray Point Vector
   deriving (Show, Eq)
 data Sphere = Sphere { sCenter :: Point, radius :: Double  }
+  deriving (Show, Eq)
+data Plane = Plane { pCenter :: Point, pPoint :: Point, pNormal :: Vector }
   deriving (Show, Eq)
 
 minus :: Point -> Point -> Vector
@@ -31,8 +33,8 @@ mag (Vector (vx, vy, vz)) = sqrt $ vx^2 + vy^2 + vz^2
 normalize :: Vector -> Vector
 normalize v = scale (1 / (mag v)) v
 
-findClosestIntersection :: Ray -> Sphere -> Maybe Point
-findClosestIntersection (Ray o d) (Sphere c r)
+raySphereIntersection :: Ray -> Sphere -> Maybe Point
+raySphereIntersection (Ray o d) (Sphere c r)
    | delta'2 < 0 = Nothing  -- no intersection
    | delta'2 == 0 = Just b -- 1 intersection
    | ml < r = Nothing  -- ray is inside sphere
@@ -44,3 +46,16 @@ findClosestIntersection (Ray o d) (Sphere c r)
     tb = nd `dot` l
     b = o `plus` (scale tb nd)
     delta'2 = r^2 - (ml)^2 + tb^2
+
+rayPlaneIntersection :: Ray -> Plane -> Maybe Point
+rayPlaneIntersection (Ray o d) (Plane a p n)
+  | (tnum == 0) || (tden == 0) = Nothing
+  | t < 0 = Nothing
+  | otherwise = Just p
+  where
+    nn = normalize n
+    nd = normalize d
+    tnum = (a `minus` o) `dot` nn
+    tden = nd `dot` nn
+    t = tnum / tden
+    p = o `plus` (scale t nd)
