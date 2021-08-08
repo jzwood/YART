@@ -59,3 +59,6 @@ rayPlaneIntersection (Ray o d) (Plane a p n)
     tden = nd `dot` nn
     t = tnum / tden
     p = o `plus` (scale t nd)
+
+getNormal :: Point -> Sphere -> Vector
+getNormal p (Sphere c _) = normalize $ p `minus` c
