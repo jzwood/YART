@@ -21,6 +21,9 @@ minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 -
 dot :: Vector -> Vector -> Double
 dot (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = (vx1 * vx2) + (vy1 * vy2) + (vz1 * vz2)
 
+cross :: Vector -> Vector -> Vector
+cross (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = Vector (vy1 * vz2 - vz1 * vy2, vz1 * vx2 - vx1 * vz2, vx1 * vy2 - vy1 * vx2)
+
 scale :: Double -> Vector -> Vector
 scale f (Vector (vx1, vy1, vz1)) = Vector (f * vx1, f * vy1, f * vz1)
 
@@ -29,6 +32,9 @@ plus (Point (px, py, pz)) (Vector (vx, vy, vz)) = Point (px + vx, py + vy, pz + 
 
 mag :: Vector -> Double
 mag (Vector (vx, vy, vz)) = sqrt $ vx^2 + vy^2 + vz^2
+
+negate :: Vector -> Vector
+negate (Vector (vx, vy, vz)) = Vector (-vx, -vy, -vz)
 
 normalize :: Vector -> Vector
 normalize v = scale (1 / (mag v)) v
