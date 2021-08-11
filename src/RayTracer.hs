@@ -53,19 +53,19 @@ snap prec (Point (px, py, pz)) =
 rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye sphere window =
    let
-      floorColor :: Point -> RGB
-      floorColor (Point (x, 0, z)) =
+      floorColor :: LightSource -> Point -> RGB
+      floorColor ls (Point (x, 0, z)) =
          if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
          then RGB 0 0 0
          else RGB 255 255 255
-      floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
+      floorColor _ p = error $ "floor color somehow given a point that does not exist: " <> show p
       --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
          & (\ray -> rayPlaneIntersection ray plane)  -- & rayPlaneIntersection plane
          <&> snap 6
-         <&> floorColor
+         <&> floorColor ls
          <&> rgbToPixelRGB8
          & fromMaybe black
    in

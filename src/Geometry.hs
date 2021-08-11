@@ -39,6 +39,9 @@ negate (Vector (vx, vy, vz)) = Vector (-vx, -vy, -vz)
 normalize :: Vector -> Vector
 normalize v = scale (1 / (mag v)) v
 
+angle :: Vector -> Vector -> Double
+angle v1 v2 = acos ((v1 `dot` v2) / (mag v1 * mag v2))
+
 raySphereIntersection :: Ray -> Sphere -> Maybe Point
 raySphereIntersection (Ray o d) (Sphere c r)
    | delta'2 < 0 = Nothing  -- no intersection

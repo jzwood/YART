@@ -119,3 +119,17 @@ spec = do
         sphere = Sphere (Point (0, 0, 0)) 4
       in
         getNormal point sphere `shouldBe` Vector (0, 1, 0)
+
+    it "test angle (1)" $
+      let
+        v1 = Vector (0, 1, 0)
+        v2 = Vector (1, 0, 0)
+      in
+        angle v1 v2 `shouldBe` pi / 2
+
+    it "test angle (2)" $
+      let
+        v1 = Vector (1, 0, 0)
+        v2 = Vector (1, 0, 0)
+      in
+        angle v1 v2 `shouldBe` 0
