@@ -120,6 +120,12 @@ spec = do
       in
         getNormal point sphere `shouldBe` Vector (0, 1, 0)
 
+    it "test negate" $
+      let
+        vector = Vector (1, 3, -2)
+      in
+        Geometry.negate vector `shouldBe` Vector (-1, -3, 2)
+
     it "test angle (1)" $
       let
         v1 = Vector (0, 1, 0)

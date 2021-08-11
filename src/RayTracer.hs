@@ -11,6 +11,7 @@ import Utils
 
  -- Window: pixel screen through which rays are cast through from Eye
 data Window = Window { wNorm :: Ray, up :: Vector, width :: Double, height :: Double, pxWidth :: Integer, pxHeight :: Integer }
+--data Window = Window { wNorm :: Ray, up :: Vector, width :: Integer, height :: Integer, resolution :: Integer }
 data RGB = RGB { red :: Integer, green :: Integer, blue :: Integer }
 
 type LightSource = Point
@@ -39,6 +40,13 @@ imageCreator path = writePng path $ generateImage pixelRenderer 250 300
 rgbToPixelRGB8 :: RGB -> PixelRGB8
 rgbToPixelRGB8  (RGB red green blue) = PixelRGB8 (fromIntegral red) (fromIntegral green) (fromIntegral blue)
 
+scaleRGB :: Double -> RGB -> RGB
+scaleRGB per (RGB red green blue) =
+   let
+      scale' :: Integer -> Integer
+      scale' color = round (per * fromIntegral color)
+   in
+      RGB (scale' red) (scale' green) (scale' blue)
 
 snap :: Integer -> Point -> Point
 snap prec (Point (px, py, pz)) =
@@ -53,19 +61,23 @@ snap prec (Point (px, py, pz)) =
 rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye sphere window =
    let
-      floorColor :: LightSource -> Point -> RGB
-      floorColor ls (Point (x, 0, z)) =
-         if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
-         then RGB 0 0 0
-         else RGB 255 255 255
-      floorColor _ p = error $ "floor color somehow given a point that does not exist: " <> show p
+      floorColor :: Point -> RGB
+      floorColor intersection@(Point (x, 0, z)) = scaleRGB brightness origColor
+         where
+            origColor =
+               if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
+               then RGB 0 0 0
+               else RGB 255 255 255
+            theta = angle (eye `minus` intersection) (ls `minus` intersection)
+            brightness = (sin theta) ^ 2
+      floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
       --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
          & (\ray -> rayPlaneIntersection ray plane)  -- & rayPlaneIntersection plane
          <&> snap 6
-         <&> floorColor ls
+         <&> floorColor
          <&> rgbToPixelRGB8
          & fromMaybe black
    in
