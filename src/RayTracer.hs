@@ -7,6 +7,7 @@ import Data.Function
 import Data.Maybe
 import Codec.Picture
 import Geometry
+import Utils
 
  -- Window: pixel screen through which rays are cast through from Eye
 data Window = Window { wNorm :: Ray, up :: Vector, width :: Double, height :: Double, pxWidth :: Integer, pxHeight :: Integer }
@@ -38,6 +39,14 @@ imageCreator path = writePng path $ generateImage pixelRenderer 250 300
 rgbToPixelRGB8 :: RGB -> PixelRGB8
 rgbToPixelRGB8  (RGB red green blue) = PixelRGB8 (fromIntegral red) (fromIntegral green) (fromIntegral blue)
 
+
+snap :: Integer -> Point -> Point
+snap prec (Point (px, py, pz)) =
+   let
+      snap' = round' prec
+   in
+   Point (snap' px, snap' py, snap' pz)
+
 --bounce :: Ray -> Maybe Point
 --bounce (Ray p v) =
 
@@ -49,15 +58,16 @@ rayTrace ls eye sphere window =
          if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
          then RGB 0 0 0
          else RGB 255 255 255
-      --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
-      floorColor _ = RGB 0 255 0
+      floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
+      --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
-         (pixelToRay (fromIntegral x) (fromIntegral y) eye window)
+         pixelToRay (fromIntegral x) (fromIntegral y) eye window
          & (\ray -> rayPlaneIntersection ray plane)  -- & rayPlaneIntersection plane
+         <&> snap 6
          <&> floorColor
          <&> rgbToPixelRGB8
-         & (fromMaybe black)
+         & fromMaybe black
    in
       pixelToColor
    where
