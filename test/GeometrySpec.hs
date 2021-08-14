@@ -2,6 +2,8 @@ module GeometrySpec (spec) where
 
 import Test.Hspec
 import Geometry
+import RayTracer
+
 
 spec :: Spec
 spec = do
@@ -13,6 +15,10 @@ spec = do
     it "test dot" $ do
       (Vector (0, 1, 0)) `dot` (Vector (0, 1, 0)) `shouldBe` 1
       (Vector (0, 1, 0)) `dot` (Vector (0, 0, 1)) `shouldBe` 0
+
+    it "test cross" $ do
+      (Vector (0, 0, -1)) `cross` (Vector (-1, 0, 0)) `shouldBe` (Vector (0, 1, 0))
+      normalize ((Vector (0, 3, 0)) `cross` (Vector (0, 0, -2))) `shouldBe` (Vector (-1, 0, 0))
 
     it "test scale" $ do
       scale 3 (Vector (0, 1, 0)) `shouldBe` Vector (0, 3, 0)
@@ -139,3 +145,35 @@ spec = do
         v2 = Vector (1, 0, 0)
       in
         angle v1 v2 `shouldBe` 0
+
+  describe "raytracer building blocks" $ do
+    it "test pixelToOrigin simple (1)" $ do
+      let point = Point (0, 0, 0)
+          norm = Vector (0, 0, -1)
+          wNorm = Ray point norm
+          up = Vector (0, 1, 0)
+          window1 = Window { wNorm = wNorm, up = up, width = 2.0, height = 2.0, pxWidth = 100, pxHeight = 100 }
+          window2 = Window { wNorm = wNorm, up = up, width = 3.0, height = 4.0, pxWidth = 100, pxHeight = 100 }
+      pixelToOrigin window1 `shouldBe` Point (-1, 1, 0)
+      pixelToOrigin window2 `shouldBe` Point (-1.5, 2, 0)
+
+    it "test pixelToRay simple (1)" $ do
+      let eye = Point (0, 0, 1)
+          point = Point (0, 0, 0)
+          norm = Vector (0, 0, -1)
+          wNorm = Ray point norm
+          up = Vector (0, 1, 0)
+          window = Window { wNorm = wNorm, up = up, width = 2.0, height = 2.0, pxWidth = 3, pxHeight = 3 }
+      pixelToRay 1 1 eye window `shouldBe` Ray (Point (0, 0, 0)) (Vector (0, 0, -1))
+      pixelToRay 0 0 eye window `shouldBe` Ray (Point (-1, 1, 0)) (normalize (Vector (-1, 1, -1)))
+
+    --it "test pixelToRay (1)" $
+      --let
+        --eye = Point (3, 2, -1)
+        --point = Point (3, 2, 1)
+        --norm = Vector (0, 0, 1)
+        --wNorm = Ray point norm
+        --up = Vector (0, 1, 0)
+        --window = Window { wNorm, up, width = 4, height = 2, pxWidth = 8, pxHeight = 4}
+      --in
+        --pixelToRay 0 0 eye window `shouldBe`

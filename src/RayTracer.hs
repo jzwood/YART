@@ -11,8 +11,9 @@ import Utils
 
  -- Window: pixel screen through which rays are cast through from Eye
 data Window = Window { wNorm :: Ray, up :: Vector, width :: Double, height :: Double, pxWidth :: Integer, pxHeight :: Integer }
---data Window = Window { wNorm :: Ray, up :: Vector, width :: Integer, height :: Integer, resolution :: Integer }
+  deriving (Show, Eq)
 data RGB = RGB { red :: Integer, green :: Integer, blue :: Integer }
+  deriving (Show, Eq)
 
 type LightSource = Point
 type Eye = Point
@@ -20,18 +21,26 @@ type Eye = Point
 white = PixelRGB8 255 255 255
 black = PixelRGB8 0 0 0
 
-pixelToRay :: Integer -> Integer -> Eye -> Window -> Ray
-pixelToRay x y eye (Window { wNorm = Ray origin vNorm, up, width, height, pxWidth, pxHeight }) = Ray point $ normalize (point `minus` eye)
+pixelToOrigin :: Window -> Point
+pixelToOrigin (Window { wNorm = Ray origin vNorm, up, width, height }) = topLeft
    where
-      left = up `cross` vNorm
+      left = normalize $ up `cross` vNorm
       right = Geometry.negate left
-      down = Geometry.negate up
-      topLeft = origin `plus` (scale 0.5 left) `plus` (scale 0.5 up)
+      nUp = normalize up
+      down = Geometry.negate nUp
+      topLeft = origin `plus` ((0.5 * width) `scale` left) `plus` ((0.5 * height) `scale` nUp)
+
+pixelToRay :: Integer -> Integer -> Eye -> Window -> Ray
+pixelToRay x y eye w@(Window { wNorm = Ray origin vNorm, up, width, height, pxWidth, pxHeight }) = Ray point $ normalize (point `minus` eye)
+   where
+      topLeft = pixelToOrigin w
+      right = Geometry.negate $ normalize $ up `cross` vNorm
+      down = Geometry.negate $ normalize up
       xd = fromIntegral x
       yd = fromIntegral y
       pxWd = fromIntegral pxWidth
       pyHd = fromIntegral pxHeight
-      point = topLeft `plus` (scale (xd * (width / pxWd)) right) `plus` (scale (yd * (height / pyHd)) down)
+      point = topLeft `plus` ((xd / (pxWd - 1) * width) `scale` right) `plus` ((yd / (pyHd - 1) * height) `scale` down)
 
 imageCreator :: String -> IO ()
 imageCreator path = writePng path $ generateImage pixelRenderer 250 300
