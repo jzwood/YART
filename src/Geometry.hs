@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module Geometry where
 
 -- Math from:
@@ -17,6 +19,9 @@ data Plane = Plane { pCenter :: Point, pPoint :: Point, pNormal :: Vector }
 
 minus :: Point -> Point -> Vector
 minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 - py2, pz1 - pz2)
+
+add :: Vector -> Vector -> Vector
+add (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = Vector (vx1 + vx2, vy1 + vy2, vz1 + vz2)
 
 dot :: Vector -> Vector -> Double
 dot (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = (vx1 * vx2) + (vy1 * vy2) + (vz1 * vz2)
@@ -69,5 +74,12 @@ rayPlaneIntersection (Ray o d) (Plane a p n)
     t = tnum / tden
     p = o `plus` (scale t nd)
 
-getNormal :: Point -> Sphere -> Vector
-getNormal p (Sphere c _) = normalize $ p `minus` c
+getSphereNormal :: Point -> Sphere -> Vector
+getSphereNormal p (Sphere c _) = normalize $ p `minus` c
+
+getPlaneNormal :: Plane -> Vector
+getPlaneNormal (Plane { pNormal }) = pNormal
+
+reflect :: Vector -> Vector -> Vector
+reflect incoming normal = incoming `add` ((-2 * (incoming `dot` n)) `scale` n)
+  where n = normalize normal

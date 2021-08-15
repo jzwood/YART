@@ -3,7 +3,15 @@ module GeometrySpec (spec) where
 import Test.Hspec
 import Geometry
 import RayTracer
+import Utils
 
+
+roundVector :: Vector -> Vector
+roundVector (Vector (vx, vy, vz)) =
+   let
+      snap' = round' 6
+   in
+   Vector (snap' vx, snap' vy, snap' vz)
 
 spec :: Spec
 spec = do
@@ -112,19 +120,19 @@ spec = do
         rayPlaneIntersection camera plane `shouldBe` Nothing
 
   describe "helpers" $ do
-    it "test getNormal (1)" $
+    it "test getSphereNormal (1)" $
       let
         point = Point (3,0,0)
         sphere = Sphere (Point (3, 2, 0)) 2
       in
-        getNormal point sphere `shouldBe` Vector (0, -1, 0)
+        getSphereNormal point sphere `shouldBe` Vector (0, -1, 0)
 
-    it "test getNormal (2)" $
+    it "test getSphereNormal (2)" $
       let
         point = Point (0,4,0)
         sphere = Sphere (Point (0, 0, 0)) 4
       in
-        getNormal point sphere `shouldBe` Vector (0, 1, 0)
+        getSphereNormal point sphere `shouldBe` Vector (0, 1, 0)
 
     it "test negate" $
       let
@@ -146,6 +154,27 @@ spec = do
       in
         angle v1 v2 `shouldBe` 0
 
+    it "test reflect (1)" $
+      let
+        i = Vector (0, 1, 0)
+        n = Vector (0, 1, 0)
+      in
+        normalize(reflect i n) `shouldBe` Vector (0, -1, 0)
+
+    it "test reflect (2)" $
+      let
+        i = Vector (-1, -1, -1)
+        n = Vector (0, 1, 0)
+      in
+        normalize (reflect i n) `shouldBe` normalize (Vector (-1, 1, -1))
+
+    it "test reflect (3)" $
+      let
+        i = Vector (-1, 0, 0)
+        n = Vector (1, 1, 0)
+      in
+        roundVector (normalize (reflect i n)) `shouldBe` Vector (0, 1, 0)
+
   describe "raytracer building blocks" $ do
     it "test pixelToOrigin simple (1)" $ do
       let point = Point (0, 0, 0)
@@ -166,14 +195,3 @@ spec = do
           window = Window { wNorm = wNorm, up = up, width = 2.0, height = 2.0, pxWidth = 3, pxHeight = 3 }
       pixelToRay 1 1 eye window `shouldBe` Ray (Point (0, 0, 0)) (Vector (0, 0, -1))
       pixelToRay 0 0 eye window `shouldBe` Ray (Point (-1, 1, 0)) (normalize (Vector (-1, 1, -1)))
-
-    --it "test pixelToRay (1)" $
-      --let
-        --eye = Point (3, 2, -1)
-        --point = Point (3, 2, 1)
-        --norm = Vector (0, 0, 1)
-        --wNorm = Ray point norm
-        --up = Vector (0, 1, 0)
-        --window = Window { wNorm, up, width = 4, height = 2, pxWidth = 8, pxHeight = 4}
-      --in
-        --pixelToRay 0 0 eye window `shouldBe`

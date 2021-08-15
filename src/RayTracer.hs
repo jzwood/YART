@@ -64,8 +64,24 @@ snap prec (Point (px, py, pz)) =
    in
    Point (snap' px, snap' py, snap' pz)
 
---bounce :: Ray -> Maybe Point
---bounce (Ray p v) =
+
+--bounce :: Ray -> LightSource -> Sphere -> Plane -> Maybe Point
+--bounce (Ray p v) ls sphere plane =
+   --case (rsi, psi) of
+     --(Nothing, Nothing) ->
+     --(_, Nothing) -> Just rsi
+     --_ -> Just psi
+   --where
+
+bounce :: LightSource -> Sphere -> Plane -> Ray -> Maybe (Point, Ray)
+bounce ls sphere plane ray =
+   case (mRsi, mPsi) of
+     (Just rsi, _) -> Nothing -- Just (rsi, reflected)
+     (_, Just psi) -> Nothing -- Just (psi, blackhole)
+     _ -> Nothing
+   where
+      mRsi = raySphereIntersection ray sphere
+      mPsi = rayPlaneIntersection ray plane
 
 rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye sphere window =
