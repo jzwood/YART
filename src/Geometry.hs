@@ -52,7 +52,8 @@ raySphereIntersection (Ray o d) (Sphere c r)
    | delta'2 < 0 = Nothing  -- no intersection
    | delta'2 == 0 = Just b -- 1 intersection
    | ml < r = Nothing  -- ray is inside sphere
-   | otherwise = Just $ o `plus` (scale (tb - (sqrt delta'2))  nd) -- 2 intersections
+   | not $ signsMatch (x `minus` o) d = Nothing -- ray points in wrong direction
+   | otherwise = Just x
   where
     nd = normalize d
     l = c `minus` o
@@ -60,6 +61,7 @@ raySphereIntersection (Ray o d) (Sphere c r)
     tb = nd `dot` l
     b = o `plus` (scale tb nd)
     delta'2 = r^2 - (ml)^2 + tb^2
+    x = o `plus` (scale (tb - (sqrt delta'2))  nd) -- 2 intersections
 
 rayPlaneIntersection :: Ray -> Plane -> Maybe Point
 rayPlaneIntersection (Ray o d) (Plane a p n)
@@ -83,3 +85,11 @@ getPlaneNormal (Plane { pNormal }) = pNormal
 reflect :: Vector -> Vector -> Vector
 reflect incoming normal = incoming `add` ((-2 * (incoming `dot` n)) `scale` n)
   where n = normalize normal
+
+signsMatch :: Vector -> Vector -> Bool
+signsMatch (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) =
+  let
+    matches :: (Num a, Ord a) => a -> a -> Bool
+    matches a b = (a == b) || (a < 0 && b < 0) || (a > 0 && b > 0)
+  in
+    matches vx1 vx2 && matches vy1 vy2 && matches vz1 vz2

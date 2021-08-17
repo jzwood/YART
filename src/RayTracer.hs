@@ -21,6 +21,10 @@ type Eye = Point
 
 white = PixelRGB8 255 255 255
 black = PixelRGB8 0 0 0
+red' = PixelRGB8 255 0 0
+green' = PixelRGB8 0 255 0
+blue' = PixelRGB8 0 0 255
+gray = PixelRGB8 50 50 50
 
 pixelToOrigin :: Window -> Point
 pixelToOrigin (Window { wNorm = Ray origin vNorm, up, width, height }) = topLeft
@@ -103,15 +107,16 @@ rayTrace ls eye sphere window =
             theta = angle (eye `minus` intersection) (ls `minus` intersection)
             brightness = (sin theta) ^ 2
       --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
+      --floorColor p = RGB 0 0 0
       floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
-         & trackRay sphere plane
-         -- <&> snap 6
+          & trackRay sphere plane
+          <&> snap 6
          <&> floorColor
          <&> rgbToPixelRGB8
-         & fromMaybe black
+         & fromMaybe gray
    in
       pixelToColor
    where

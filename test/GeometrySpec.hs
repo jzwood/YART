@@ -67,7 +67,14 @@ spec = do
         camera = Ray (Point (0,0,0)) (Vector (0,1,0))
         sphere = Sphere { sCenter = Point (0,1,0), radius = 1 }
       in
-        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 0))
+        raySphereIntersection camera sphere `shouldBe` Nothing
+
+    it "test intersection ray away from surface" $
+      let
+        camera = Ray (Point (0,1,0)) (Vector (0,1,0))
+        sphere = Sphere { sCenter = Point (0,0,0), radius = 1 }
+      in
+        raySphereIntersection camera sphere `shouldBe` Nothing
 
     it "test intersection ray inside surface" $
       let
@@ -80,6 +87,13 @@ spec = do
       let
         camera = Ray (Point (0,0,0)) (Vector (0,1,0))
         sphere = Sphere { sCenter = Point (0,0,8), radius = 2 }
+      in
+        raySphereIntersection camera sphere `shouldBe` Nothing
+
+    it "test no intersection (sphere behind ray)" $
+      let
+        camera = Ray (Point (0,0,0)) (Vector (0,1,0))
+        sphere = Sphere { sCenter = Point (0,-4,0), radius = 2 }
       in
         raySphereIntersection camera sphere `shouldBe` Nothing
 
