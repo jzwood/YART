@@ -195,3 +195,13 @@ spec = do
           window = Window { wNorm = wNorm, up = up, width = 2.0, height = 2.0, pxWidth = 3, pxHeight = 3 }
       pixelToRay 1 1 eye window `shouldBe` Ray (Point (0, 0, 0)) (Vector (0, 0, -1))
       pixelToRay 0 0 eye window `shouldBe` Ray (Point (-1, 1, 0)) (normalize (Vector (-1, 1, -1)))
+
+    it "test trackRay matches floor intersection away from sphere (1)" $ do
+      let camera1 = Ray (Point (10, 5, 0)) (Vector (0, 0, -1))
+          camera2 = Ray (Point (4, 5, 0)) (Vector (-0.1, -0.2, -1))
+          camera3 = Ray (Point (-10, 5, 20)) (Vector (0, -0.1, -1))
+          plane = Plane { pCenter = Point (0,0,0), pPoint = Point (0, 0, 1), pNormal = Vector (0, 1, 0) }
+          sphere = Sphere { sCenter = Point (40,0,0), radius = 1 }
+      rayPlaneIntersection camera1 plane `shouldBe` trackRay sphere plane camera1
+      rayPlaneIntersection camera2 plane `shouldBe` trackRay sphere plane camera2
+      rayPlaneIntersection camera3 plane `shouldBe` trackRay sphere plane camera3

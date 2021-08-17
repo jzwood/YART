@@ -2,10 +2,11 @@
 
 module RayTracer where
 
-import Data.Functor
-import Data.Function
-import Data.Maybe
 import Codec.Picture
+import Data.Function
+import Data.Functor
+import Data.List
+import Data.Maybe
 import Geometry
 import Utils
 
@@ -64,24 +65,30 @@ snap prec (Point (px, py, pz)) =
    in
    Point (snap' px, snap' py, snap' pz)
 
-
---bounce :: Ray -> LightSource -> Sphere -> Plane -> Maybe Point
---bounce (Ray p v) ls sphere plane =
-   --case (rsi, psi) of
-     --(Nothing, Nothing) ->
-     --(_, Nothing) -> Just rsi
-     --_ -> Just psi
-   --where
-
-bounce :: LightSource -> Sphere -> Plane -> Ray -> Maybe (Point, Ray)
-bounce ls sphere plane ray =
+bounce :: Sphere -> Plane -> Ray -> Maybe (Point, Ray)
+bounce sphere plane ray@(Ray _ v) =
    case (mRsi, mPsi) of
-     (Just rsi, _) -> Nothing -- Just (rsi, reflected)
-     (_, Just psi) -> Nothing -- Just (psi, blackhole)
+     (Just rsi, _) -> Just (rsi, Ray rsi (reflect v (getSphereNormal rsi sphere)))
+     (_, Just psi) -> Just (psi, Ray (Point (0, -1, 0)) (Vector (0, -1, 0))) -- a ray that intersects with nothing
      _ -> Nothing
    where
       mRsi = raySphereIntersection ray sphere
       mPsi = rayPlaneIntersection ray plane
+
+trackRay :: Sphere -> Plane -> Ray -> Maybe Point
+trackRay sphere plane ray =
+   let
+      bounce' = bounce sphere plane
+      maybeLast [] = Nothing
+      maybeLast arr = Just $ last arr
+    in
+      unfoldr bounce' ray
+      & maybeLast
+
+canLightSourceReachPoint :: LightSource -> Sphere -> Point -> Bool
+canLightSourceReachPoint ls sphere point = raySphereIntersection ray sphere & isNothing
+   where
+      ray = Ray ls (point `minus` ls)
 
 rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye sphere window =
@@ -95,13 +102,13 @@ rayTrace ls eye sphere window =
                else RGB 255 255 255
             theta = angle (eye `minus` intersection) (ls `minus` intersection)
             brightness = (sin theta) ^ 2
-      floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
-      --floorColor _ = RGB 0 255 0
+      --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
+      floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
-         & (\ray -> rayPlaneIntersection ray plane)  -- & rayPlaneIntersection plane
-         <&> snap 6
+         & trackRay sphere plane
+         -- <&> snap 6
          <&> floorColor
          <&> rgbToPixelRGB8
          & fromMaybe black
