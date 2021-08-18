@@ -98,7 +98,7 @@ rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye sphere window =
    let
       floorColor :: Point -> RGB
-      floorColor intersection@(Point (x, 0, z)) = scaleRGB brightness origColor
+      floorColor intersection@(Point (x, 0, z)) = scaleRGB (visibility * brightness) origColor
          where
             origColor =
                if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
@@ -106,17 +106,20 @@ rayTrace ls eye sphere window =
                else RGB 255 255 255
             theta = angle (eye `minus` intersection) (ls `minus` intersection)
             brightness = (sin theta) ^ 2
+            --distance = logistic 0.2 $ mag $ ls `minus` intersection
+            --distance = minimum [1, 30 / (mag $ ls `minus` intersection)]
+            visibility = if canLightSourceReachPoint ls sphere intersection then 1 else 0.2
       --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
-      --floorColor p = RGB 0 0 0
-      floorColor _ = RGB 0 255 0
+      floorColor p = RGB 5 5 10
+      --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
-          & trackRay sphere plane
-          <&> snap 6
+         & trackRay sphere plane
+         <&> snap 6
          <&> floorColor
          <&> rgbToPixelRGB8
-         & fromMaybe gray
+         & fromMaybe black
    in
       pixelToColor
    where

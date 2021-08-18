@@ -13,7 +13,7 @@ sphere = Sphere { sCenter = Point (5, 3, -20)
                 }
 window = Window { wNorm = Ray (Point (5, 5, -5)) (Vector (0, 0, -1))
                 , up = Vector (0, 1, 0)
-                , width = 10, height = 5, pxWidth = 2000, pxHeight = 1000
+                , width = 5, height = 5, pxWidth = 2000, pxHeight = 2000
                 }
 
 main :: IO ()

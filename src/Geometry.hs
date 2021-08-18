@@ -17,6 +17,8 @@ data Sphere = Sphere { sCenter :: Point, radius :: Double  }
 data Plane = Plane { pCenter :: Point, pPoint :: Point, pNormal :: Vector }
   deriving (Show, Eq)
 
+e = 2.71828  -- euler's number
+
 minus :: Point -> Point -> Vector
 minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 - py2, pz1 - pz2)
 
@@ -93,3 +95,6 @@ signsMatch (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) =
     matches a b = (a == b) || (a < 0 && b < 0) || (a > 0 && b > 0)
   in
     matches vx1 vx2 && matches vy1 vy2 && matches vz1 vz2
+
+logistic :: Double -> Double -> Double -- Domain: Real, Range: 0-1
+logistic a x = 1 / (1 + e**(-x * a))
