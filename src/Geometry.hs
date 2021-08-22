@@ -6,9 +6,9 @@ module Geometry where
 -- https://slides.com/sergejkosov/ray-geometry-intersection-algorithms/fullscreen
 
 newtype Point = Point (Double, Double, Double)
-  deriving (Show, Eq)
+  deriving (Show)
 newtype Vector = Vector (Double, Double, Double)
-  deriving (Show, Eq)
+  deriving (Show)
 
 data Ray = Ray Point Vector
   deriving (Show, Eq)
@@ -18,6 +18,13 @@ data Plane = Plane { pCenter :: Point, pPoint :: Point, pNormal :: Vector }
   deriving (Show, Eq)
 
 e = 2.71828  -- euler's number
+epsilon = 0.0001
+
+instance Eq Point where
+  (==) (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = all (\x -> abs x < epsilon) [px1 - px2, py1 - py2, pz1 - pz2]
+
+instance Eq Vector where
+  (==) (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = all (\x -> abs x < epsilon) [vx1 - vx2, vy1 - vy2, vz1 - vz2]
 
 minus :: Point -> Point -> Vector
 minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 - py2, pz1 - pz2)
@@ -54,7 +61,7 @@ raySphereIntersection (Ray o d) (Sphere c r)
    | delta'2 < 0 = Nothing  -- no intersection
    | delta'2 == 0 = Just b -- 1 intersection
    | ml < r = Nothing  -- ray is inside sphere
-   | not $ signsMatch (x `minus` o) d = Nothing -- ray points in wrong direction
+   | normalize (x `minus` o) /= nd = Nothing -- ray points in wrong direction
    | otherwise = Just x
   where
     nd = normalize d
@@ -87,14 +94,6 @@ getPlaneNormal (Plane { pNormal }) = pNormal
 reflect :: Vector -> Vector -> Vector
 reflect incoming normal = incoming `add` ((-2 * (incoming `dot` n)) `scale` n)
   where n = normalize normal
-
-signsMatch :: Vector -> Vector -> Bool
-signsMatch (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) =
-  let
-    matches :: (Num a, Ord a) => a -> a -> Bool
-    matches a b = (a == b) || (a < 0 && b < 0) || (a > 0 && b > 0)
-  in
-    matches vx1 vx2 && matches vy1 vy2 && matches vz1 vz2
 
 logistic :: Double -> Double -> Double -- Domain: Real, Range: 0-1
 logistic a x = 1 / (1 + e**(-x * a))
