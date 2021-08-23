@@ -97,34 +97,29 @@ canLightSourceReachPoint ls point sphere = raySphereIntersection ray sphere & is
    where
       ray = Ray ls (point `minus` ls)
 
+calculateColor :: LightSource -> Eye -> [Sphere] -> Point -> RGB
+calculateColor ls eye spheres intersection@(Point (x, y, z)) = scaleRGB (visibility * brightness) origColor
+   where
+      origColor =
+         if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
+            then RGB 0 0 0
+      else RGB 255 255 255
+      theta = angle (eye `minus` intersection) (ls `minus` intersection)
+      brightness = (sin theta) ^ 2
+      --distance = logistic 0.2 $ mag $ ls `minus` intersection
+      --distance = minimum [1, 30 / (mag $ ls `minus` intersection)]
+      visibility = if all (canLightSourceReachPoint ls intersection) spheres then 1 else 0.2
+--calculateColor ls p = RGB gray gray gray
+
 rayTrace :: LightSource -> Eye -> [Sphere] -> Window -> (Int -> Int -> PixelRGB8)
 rayTrace ls eye spheres window =
    let
-      floorColor :: Point -> RGB
-      floorColor intersection@(Point (x, 0, z)) = scaleRGB (visibility * brightness) origColor
-         where
-            origColor =
-               if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
-               then RGB 0 0 0
-               else RGB 255 255 255
-            theta = angle (eye `minus` intersection) (ls `minus` intersection)
-            brightness = (sin theta) ^ 2
-            --distance = logistic 0.2 $ mag $ ls `minus` intersection
-            --distance = minimum [1, 30 / (mag $ ls `minus` intersection)]
-            visibility = if all (canLightSourceReachPoint ls intersection) spheres then 1 else 0.2
-      --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
-      floorColor p = RGB gray gray gray
-         where
-            theta = angle (eye `minus` p) (ls `minus` p)
-            brightness = (sin theta) ^ 2
-            gray = floor $ brightness * 255
-      --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
          & trackRay spheres plane
          <&> snap 6
-         <&> floorColor
+         <&> calculateColor ls eye spheres
          <&> rgbToPixelRGB8
          & fromMaybe black
    in
