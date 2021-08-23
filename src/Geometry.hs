@@ -2,6 +2,8 @@
 
 module Geometry where
 
+import Data.List (minimumBy)
+
 -- Math from:
 -- https://slides.com/sergejkosov/ray-geometry-intersection-algorithms/fullscreen
 
@@ -25,6 +27,9 @@ instance Eq Point where
 
 instance Eq Vector where
   (==) (Vector (vx1, vy1, vz1)) (Vector (vx2, vy2, vz2)) = all (\x -> abs x < epsilon) [vx1 - vx2, vy1 - vy2, vz1 - vz2]
+
+instance Ord Vector where
+  (<=) v1 v2 = mag v1 <= mag v2
 
 minus :: Point -> Point -> Vector
 minus (Point (px1, py1, pz1)) (Point (px2, py2, pz2)) = Vector (px1 - px2, py1 - py2, pz1 - pz2)
@@ -56,13 +61,13 @@ normalize v = scale (1 / (mag v)) v
 angle :: Vector -> Vector -> Double
 angle v1 v2 = acos ((v1 `dot` v2) / (mag v1 * mag v2))
 
-raySphereIntersection :: Ray -> Sphere -> Maybe Point
-raySphereIntersection (Ray o d) (Sphere c r)
+raySphereIntersection :: Ray -> Sphere -> Maybe (Point, Sphere)
+raySphereIntersection (Ray o d) s@(Sphere c r)
    | delta'2 < 0 = Nothing  -- no intersection
-   | delta'2 == 0 = Just b -- 1 intersection
+   | delta'2 == 0 = Just (b, s) -- 1 intersection
    | ml < r = Nothing  -- ray is inside sphere
    | normalize (x `minus` o) /= nd = Nothing -- ray points in wrong direction
-   | otherwise = Just x
+   | otherwise = Just (x, s)
   where
     nd = normalize d
     l = c `minus` o
@@ -97,3 +102,7 @@ reflect incoming normal = incoming `add` ((-2 * (incoming `dot` n)) `scale` n)
 
 logistic :: Double -> Double -> Double -- Domain: Real, Range: 0-1
 logistic a x = 1 / (1 + e**(-x * a))
+
+closest :: Point -> [Point] -> Maybe Point
+closest _ [] = Nothing
+closest p0 ps = Just $ minimumBy (\p1 p2 -> compare (p1 `minus` p0) (p2 `minus` p0)) ps

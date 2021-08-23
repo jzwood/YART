@@ -7,6 +7,8 @@ import Data.Function
 import Data.Functor
 import Data.List
 import Data.Maybe
+import Data.Functor
+import Data.Function
 import Geometry
 import Utils
 
@@ -69,33 +71,34 @@ snap prec (Point (px, py, pz)) =
    in
    Point (snap' px, snap' py, snap' pz)
 
-bounce :: Sphere -> Plane -> Ray -> Maybe (Point, Ray)
-bounce sphere plane ray@(Ray _ v) =
-   case (mRsi, mPsi) of
-     (Just rsi, _) -> Just (rsi, Ray rsi (reflect v (getSphereNormal rsi sphere)))
+bounce :: [Sphere] -> Plane -> Ray -> Maybe (Point, Ray)
+bounce spheres plane ray@(Ray p v) =
+   case (mRsiS, mPsi) of
+     (Just (rsi, sphere), _) -> Just (rsi, Ray rsi (reflect v (getSphereNormal rsi sphere)))
      (_, Just psi) -> Just (psi, Ray (Point (0, -1, 0)) (Vector (0, -1, 0))) -- a ray that intersects with nothing
      _ -> Nothing
    where
-      mRsi = raySphereIntersection ray sphere
+      mRsiS = spheres
+             & mapMaybe (raySphereIntersection ray)
+             & sortOn (\(i, s) -> mag $ p `minus` i)
+             & maybeHead
       mPsi = rayPlaneIntersection ray plane
 
-trackRay :: Sphere -> Plane -> Ray -> Maybe Point
-trackRay sphere plane ray =
+trackRay :: [Sphere] -> Plane -> Ray -> Maybe Point
+trackRay spheres plane ray =
    let
-      bounce' = bounce sphere plane
-      maybeLast [] = Nothing
-      maybeLast arr = Just $ last arr
+      bounce' = bounce spheres plane
     in
       unfoldr bounce' ray
       & maybeLast
 
-canLightSourceReachPoint :: LightSource -> Sphere -> Point -> Bool
-canLightSourceReachPoint ls sphere point = raySphereIntersection ray sphere & isNothing
+canLightSourceReachPoint :: LightSource -> Point -> Sphere -> Bool
+canLightSourceReachPoint ls point sphere = raySphereIntersection ray sphere & isNothing
    where
       ray = Ray ls (point `minus` ls)
 
-rayTrace :: LightSource -> Eye -> Sphere -> Window -> (Int -> Int -> PixelRGB8)
-rayTrace ls eye sphere window =
+rayTrace :: LightSource -> Eye -> [Sphere] -> Window -> (Int -> Int -> PixelRGB8)
+rayTrace ls eye spheres window =
    let
       floorColor :: Point -> RGB
       floorColor intersection@(Point (x, 0, z)) = scaleRGB (visibility * brightness) origColor
@@ -108,14 +111,18 @@ rayTrace ls eye sphere window =
             brightness = (sin theta) ^ 2
             --distance = logistic 0.2 $ mag $ ls `minus` intersection
             --distance = minimum [1, 30 / (mag $ ls `minus` intersection)]
-            visibility = if canLightSourceReachPoint ls sphere intersection then 1 else 0.2
+            visibility = if all (canLightSourceReachPoint ls intersection) spheres then 1 else 0.2
       --floorColor p = error $ "floor color somehow given a point that does not exist: " <> show p
-      floorColor p = RGB 5 5 10
+      floorColor p = RGB gray gray gray
+         where
+            theta = angle (eye `minus` p) (ls `minus` p)
+            brightness = (sin theta) ^ 2
+            gray = floor $ brightness * 255
       --floorColor _ = RGB 0 255 0
       pixelToColor :: Int -> Int -> PixelRGB8
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
-         & trackRay sphere plane
+         & trackRay spheres plane
          <&> snap 6
          <&> floorColor
          <&> rgbToPixelRGB8
@@ -125,16 +132,5 @@ rayTrace ls eye sphere window =
    where
       plane = Plane { pCenter = Point (0, 0, 0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
 
-{-
-if (first ray hits sphere) {
-   find reflected ray goes to space -> determine color based off surface color and angle between ray and ray to light source
-   if (ray has a clear view of light source) {
-      determine color based off surface color and angle between ray and ray to light source
-   }
-   else {
-   }
-}
--}
-
-saveSceneImage :: LightSource -> Eye -> Sphere -> Window -> Image PixelRGB8
-saveSceneImage ls eye sphere window@(Window { pxWidth, pxHeight }) = generateImage (rayTrace ls eye sphere window) (fromIntegral pxWidth) (fromIntegral pxHeight)
+saveSceneImage :: LightSource -> Eye -> [Sphere] -> Window -> Image PixelRGB8
+saveSceneImage ls eye spheres window@(Window { pxWidth, pxHeight }) = generateImage (rayTrace ls eye spheres window) (fromIntegral pxWidth) (fromIntegral pxHeight)
