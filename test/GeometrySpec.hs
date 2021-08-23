@@ -46,21 +46,21 @@ spec = do
         camera = Ray (Point (0,0,0)) (Vector (1,0,0))
         sphere = Sphere { sCenter = Point (4,0,0), radius = 1 }
       in
-        raySphereIntersection camera sphere `shouldBe` (Just $ Point (3, 0, 0))
+        raySphereIntersection camera sphere `shouldBe` (Just $ (Point (3, 0, 0), sphere))
 
     it "test intersection (2)" $
       let
         camera = Ray (Point (0,0,1)) (Vector (0,0,1))
         sphere = Sphere { sCenter = Point (0,0,10), radius = 2.5 }
       in
-        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 7.5))
+        raySphereIntersection camera sphere `shouldBe` (Just $ (Point (0, 0, 7.5), sphere))
 
     it "test intersection unnormalized ray" $
       let
         camera = Ray (Point (0,0,1)) (Vector (0,0,8))
         sphere = Sphere { sCenter = Point (0,0,10), radius = 1 }
       in
-        raySphereIntersection camera sphere `shouldBe` (Just $ Point (0, 0, 9))
+        raySphereIntersection camera sphere `shouldBe` (Just $ (Point (0, 0, 9), sphere))
 
     it "test intersection ray from surface" $
       let
@@ -216,6 +216,6 @@ spec = do
           camera3 = Ray (Point (-10, 5, 20)) (Vector (0, -0.1, -1))
           plane = Plane { pCenter = Point (0,0,0), pPoint = Point (0, 0, 1), pNormal = Vector (0, 1, 0) }
           sphere = Sphere { sCenter = Point (40,0,0), radius = 1 }
-      rayPlaneIntersection camera1 plane `shouldBe` trackRay sphere plane camera1
-      rayPlaneIntersection camera2 plane `shouldBe` trackRay sphere plane camera2
-      rayPlaneIntersection camera3 plane `shouldBe` trackRay sphere plane camera3
+      rayPlaneIntersection camera1 plane `shouldBe` trackRay [sphere] plane camera1
+      rayPlaneIntersection camera2 plane `shouldBe` trackRay [sphere] plane camera2
+      rayPlaneIntersection camera3 plane `shouldBe` trackRay [sphere] plane camera3
