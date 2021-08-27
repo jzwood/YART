@@ -65,10 +65,11 @@ snap prec (Point (px, py, pz)) =
 bounce :: [Sphere] -> Plane -> Ray -> Maybe (Point, Ray)
 bounce spheres plane ray@(Ray p v) =
    case (mRsiS, mPsi) of
-     (Just (rsi, sphere), _) -> Just (rsi, Ray rsi (reflect v (getSphereNormal rsi sphere)))
-     (_, Just psi) -> Just (psi, Ray (Point (0, -1, 0)) (Vector (0, -1, 0))) -- a ray that intersects with nothing
+     (Just (rsi, sphere), _) -> (\reflectedVector -> if Geometry.negate v == reflectedVector then Just (rsi, intoBlackHole) else Just (rsi, Ray rsi reflectedVector)) (reflect v (getSphereNormal rsi sphere))
+     (_, Just psi) -> Just (psi, intoBlackHole) -- a ray that intersects with nothing
      _ -> Nothing
    where
+      intoBlackHole = Ray (Point (0, -1, 0)) (Vector (0, -1, 0)) -- a ray that intersects with nothing
       mRsiS = spheres
              & mapMaybe (raySphereIntersection ray)
              & sortOn (\(i, s) -> mag $ p `minus` i)
@@ -89,9 +90,9 @@ canLightSourceReachPoint ls point sphere = raySphereIntersection ray sphere & is
       ray = Ray ls (point `minus` ls)
 
 calculateColor :: LightSource -> Eye -> [Sphere] -> Point -> RGB
-calculateColor ls eye spheres intersection@(Point (x, y, z)) = scaleRGB (visibility * brightness) origColor
+calculateColor ls eye spheres intersection@(Point (x, y, z)) = scaleRGB (visibility * brightness) floorColor
    where
-      origColor =
+      floorColor =
          if (odd (floor x) && odd (floor z)) || (even (floor x) && even (floor z))
             then RGB 0 0 0
       else RGB 255 255 255
