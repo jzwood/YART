@@ -13,5 +13,8 @@ stack exec ray-tracer-exec
 stack test
 ```
 
-## Example
-![reflecting spheres](./pics/showcase/spheres.ppm)
+### About
+This ray tracer is a product of my recreational programming habit. I'm proud to report it uses no external dependencies even for the image processing.
+
+## Demo
+![reflecting spheres](./pics/showcase/spheres.png)
