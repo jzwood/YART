@@ -21,8 +21,8 @@ spheres = [ Sphere { sCenter = Point (5, 5, -20) , radius = 5 }
           ]
 window = Window { wNorm = Ray (Point (5.2, 4.5, -5)) (Vector (0, 0, -1))
                 , up = Vector (0, 1, 0)
-                , width = 4, height = 2.5, pxWidth = 4000, pxHeight = 2500
+                , width = 4, height = 2.5, pxWidth = 2000, pxHeight = 1250
                 }
 
 main :: IO ()
-main = writeFile "./pics/scene.ppm" $ saveSceneImage ls eye spheres window
+main = writeFile "./pics/spheres.ppm" $ saveSceneImage ls eye spheres window
