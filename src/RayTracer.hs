@@ -2,7 +2,6 @@
 
 module RayTracer where
 
-import Codec.Picture
 import Data.Function
 import Data.Functor
 import Data.List
@@ -10,23 +9,22 @@ import Data.Maybe
 import Data.Functor
 import Data.Function
 import Geometry
+import PPM
 import Utils
 
  -- Window: pixel screen through which rays are cast through from Eye
 data Window = Window { wNorm :: Ray, up :: Vector, width :: Double, height :: Double, pxWidth :: Integer, pxHeight :: Integer }
   deriving (Show, Eq)
-data RGB = RGB { red :: Integer, green :: Integer, blue :: Integer }
-  deriving (Show, Eq)
 
 type LightSource = Point
 type Eye = Point
 
-white = PixelRGB8 255 255 255
-black = PixelRGB8 0 0 0
-red' = PixelRGB8 255 0 0
-green' = PixelRGB8 0 255 0
-blue' = PixelRGB8 0 0 255
-gray = PixelRGB8 50 50 50
+white = RGB 255 255 255
+black = RGB 0 0 0
+red' = RGB 255 0 0
+green' = RGB 0 255 0
+blue' = RGB 0 0 255
+gray = RGB 50 50 50
 
 pixelToOrigin :: Window -> Point
 pixelToOrigin (Window { wNorm = Ray origin vNorm, up, width, height }) = topLeft
@@ -48,13 +46,6 @@ pixelToRay x y eye w@(Window { wNorm = Ray origin vNorm, up, width, height, pxWi
       pxWd = fromIntegral pxWidth
       pyHd = fromIntegral pxHeight
       point = topLeft `plus` ((xd / (pxWd - 1) * width) `scale` right) `plus` ((yd / (pyHd - 1) * height) `scale` down)
-
-imageCreator :: String -> IO ()
-imageCreator path = writePng path $ generateImage pixelRenderer 250 300
-   where pixelRenderer x y = PixelRGB8 (fromIntegral x) (fromIntegral y) 128
-
-rgbToPixelRGB8 :: RGB -> PixelRGB8
-rgbToPixelRGB8  (RGB red green blue) = PixelRGB8 (fromIntegral red) (fromIntegral green) (fromIntegral blue)
 
 scaleRGB :: Double -> RGB -> RGB
 scaleRGB per (RGB red green blue) =
@@ -111,21 +102,20 @@ calculateColor ls eye spheres intersection@(Point (x, y, z)) = scaleRGB (visibil
       visibility = if all (canLightSourceReachPoint ls intersection) spheres then 1 else 0.2
 --calculateColor ls p = RGB gray gray gray
 
-rayTrace :: LightSource -> Eye -> [Sphere] -> Window -> (Int -> Int -> PixelRGB8)
+rayTrace :: LightSource -> Eye -> [Sphere] -> Window -> (Integer -> Integer -> RGB)
 rayTrace ls eye spheres window =
    let
-      pixelToColor :: Int -> Int -> PixelRGB8
+      pixelToColor :: Integer -> Integer -> RGB
       pixelToColor x y =
          pixelToRay (fromIntegral x) (fromIntegral y) eye window
          & trackRay spheres plane
          <&> snap 6
          <&> calculateColor ls eye spheres
-         <&> rgbToPixelRGB8
          & fromMaybe black
    in
       pixelToColor
    where
       plane = Plane { pCenter = Point (0, 0, 0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
 
-saveSceneImage :: LightSource -> Eye -> [Sphere] -> Window -> Image PixelRGB8
-saveSceneImage ls eye spheres window@(Window { pxWidth, pxHeight }) = generateImage (rayTrace ls eye spheres window) (fromIntegral pxWidth) (fromIntegral pxHeight)
+saveSceneImage :: LightSource -> Eye -> [Sphere] -> Window -> String
+saveSceneImage ls eye spheres window@(Window { pxWidth, pxHeight }) = genPPM (rayTrace ls eye spheres window) pxWidth pxHeight
