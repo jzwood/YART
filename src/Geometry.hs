@@ -16,7 +16,7 @@ data Ray = Ray Point Vector
   deriving (Show, Eq)
 data Sphere = Sphere { sCenter :: Point, radius :: Double  }
   deriving (Show, Eq)
-data Plane = Plane { pCenter :: Point, pPoint :: Point, pNormal :: Vector }
+data Plane = Plane { pCenter :: Point, pNormal :: Vector }
   deriving (Show, Eq)
 
 e = 2.71828  -- euler's number
@@ -78,7 +78,7 @@ raySphereIntersection (Ray o d) s@(Sphere c r)
     x = o `plus` (scale (tb - (sqrt delta'2))  nd) -- 2 intersections
 
 rayPlaneIntersection :: Ray -> Plane -> Maybe Point
-rayPlaneIntersection (Ray o d) (Plane a p n)
+rayPlaneIntersection (Ray o d) (Plane a n)
   | (tnum == 0) || (tden == 0) = Nothing
   | t < 0 = Nothing
   | otherwise = Just p

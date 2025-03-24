@@ -116,7 +116,7 @@ rayTrace ls eye spheres window =
    in
       pixelToColor
    where
-      plane = Plane { pCenter = Point (0, 0, 0), pPoint = Point (1, 0, 0), pNormal = Vector (0, 1, 0) }
+      plane = Plane { pCenter = Point (0, 0, 0), pNormal = Vector (0, 1, 0) }
 
 saveSceneImage :: LightSource -> Eye -> [Sphere] -> Window -> String
 saveSceneImage ls eye spheres window@(Window { pxWidth, pxHeight }) = genPPM (rayTrace ls eye spheres window) pxWidth pxHeight
